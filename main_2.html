@@ -1,0 +1,152 @@
+@@ -0,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+        <!-- 1. Leaflet kütüphanesini sayfanıza ekleyin -->
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
+        <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+</head>
+<body>
+
+    <div id="map" style="height: 400px;"></div>
+    <script>
+        var map = L.map('map').setView([37.7749, -122.4194], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
+                '<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+                'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+            maxZoom: 18,
+        }).addTo(map);
+    </script>
+
+    <script>
+        //11 HEKTARLIK ALAN
+        var areaCoords = [
+            [37.7749, -122.4194],
+            [37.7759, -122.4194],
+            [37.7759, -122.4184],
+            [37.7749, -122.4184]
+        ];
+
+        var areaPolygon = L.polygon(areaCoords, {
+            color: '#FF0000',
+            weight: 2,
+            opacity: 0.8,
+            fillColor: '#FF0000',
+            fillOpacity: 0.35
+        });
+
+        areaPolygon.addTo(map);
+
+        // İŞARETLEYİCİLER
+        var products = [
+            { priority: 1, type: 'Sağlık Malzemesi', stock: 100 },
+            { priority: 2, type: 'Temel Gıda', stock: 100 },
+            { priority: 3, type: 'Isınma Gereci', stock: 70 },
+            { priority: 4, type: 'Giyecek', stock: 70 }
+        ];
+
+        var markers = [];
+
+        var lat = Math.random() * (37.7759 - 37.7749) + 37.7749;
+        var lng = Math.random() * (-122.4184 - (-122.4194)) + (-122.4194);
+        var marker = L.marker([lat, lng]).bindPopup('Sağlık malzemesi  Stok: 100 \n Temel Gıda: Stok: 100 \n Isınma Gereci: Stok 70 \n Giyecek: Stok 70');
+        marker.addTo(map);
+        
+        for (var i = 0; i < 9; i++) {
+            var lat = Math.random() * (37.7759 - 37.7749) + 37.7749;
+            var lng = Math.random() * (-122.4184 - (-122.4194)) + (-122.4194);
+
+            var product = products[Math.floor(Math.random() * products.length)];
+
+            var marker = L.marker([lat, lng]).bindPopup(product.type);
+            marker.addTo(map);
+            markers.push(marker);
+        }
+
+        var graph = {};
+        for (var i = 0; i < markers.length; i++) {
+            var from = markers[i];
+            var distances = {};
+            for (var j = 0; j < markers.length; j++) {
+                var to = markers[j];
+                distances[to._leaflet_id] = from.getLatLng().distanceTo(to.getLatLng());
+            }
+            graph[from._leaflet_id] = distances;
+        }
+
+        function dijkstra(graph, startId, endId) {
+            var distances = {};
+            var visited = {};
+            var previous = {};
+
+            for (var id in graph) {
+                distances[id] = Infinity;
+                previous[id] = null;
+            }
+            distances[startId] = 0;
+
+            var currentId = startId;
+
+            while (currentId != endId) {
+                var neighbors = graph[currentId];
+                for (var neighborId in neighbors) {
+                    var distance = neighbors[neighborId];
+                    if (!visited[neighborId] && distances[currentId] + distance < distances[neighborId]) {
+                        distances[neighborId] = distances[currentId] + distance;
+                        previous[neighborId] = currentId;
+                    }
+                }
+
+                visited[currentId] = true;
+
+                var shortestDistance = Infinity;
+                var shortestId = null;
+                for (var id in distances) {
+                    if (!visited[id] && distances[id] < shortestDistance) {
+                        shortestDistance = distances[id];
+                        shortestId = id;
+                    }
+                }
+
+                currentId = shortestId;
+            }
+
+            var path = [];
+            while (previous[currentId]) {
+                path.push(currentId);
+                currentId = previous[currentId];
+            }
+            path.push(startId);
+            return path.reverse();
+        }
+
+    var shortestPath = dijkstra(graph, markers[0]._leaflet_id, markers[markers.length-1]._leaflet_id);
+
+    console.log(shortestPath);
+
+    var route = L.polyline([], {color: 'blue'}).addTo(map);
+
+    for (var i = 0; i < shortestPath.length; i++) {
+        var marker = markers.find(function(m) { return m._leaflet_id == shortestPath[i]; });
+        route.addLatLng(marker.getLatLng());
+    }
+
+    var polylineLatLngs = [];
+
+    for (var i = 0; i < shortestPath.length; i++) {
+        var marker = markers.find(function(m) {
+            return m._leaflet_id == shortestPath[i];
+        });
+        polylineLatLngs.push(marker.getLatLng());
+    }
+
+    
+    
+</script>
+</body>
+</html>
