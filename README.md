@@ -2,6 +2,16 @@
 
 Kodun Amacı: Şehrin belirli noktalarında belirli ihtiyaçlar doğrultusunda ürünleri dağıtan drone navigasyonu oluşturur.
 
+1- Harita uygulaması kullanılarak 10 adet nokta belirlenir ve bu noktaların koordinatları kaydedilir.
+
+2- Belirlenen noktalardan başlayarak, öncelik değerlerine ve stok miktarlarına göre bir graf oluşturulur. Bu grafın her bir düğümü, bir noktaya karşılık gelirken, her bir kenar da iki düğüm arasındaki mesafeyi ve öncelik değerlerini temsil eder.
+
+3- Graf algoritması kullanılarak, belirlenen noktalardan başlayarak en kısa yol belirlenir. Bu işlem için örneğin Dijkstra kullanılabilir. Öncelik değerleri ve stok miktarları bu işlemde önemli birer kriter olacaktır.
+
+4- Belirlenen en kısa yol üzerindeki noktalara malzeme sevkiyatı yapılır. Bu işlem için drone veya araç kullanılabilir. Harita uygulaması kullanılarak en hızlı ve en verimli sevkiyat rotası belirlenir.
+
+5- Tüm noktalara malzeme sevkiyatı yapılana kadar bu işlem tekrarlanır. Sevkiyat sırasında, öncelik değerleri ve stok miktarlarına göre en kısa yolu belirlemek için graf algoritması kullanılır.
+
 Kodu standart bir HTML şeklinde live server üzerinden çalıştırabilirsiniz.
 
 
