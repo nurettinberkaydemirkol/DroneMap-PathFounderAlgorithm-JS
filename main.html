@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+        <!-- 1. Leaflet kütüphanesini sayfanıza ekleyin -->
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
+        <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+</head>
+<body>
+
+    <div id="map" style="height: 400px;"></div>
+    <script>
+        var map = L.map('map').setView([37.7749, -122.4194], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
+                '<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+                'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+            maxZoom: 18,
+        }).addTo(map);
+    </script>
+
+    <script>
+        //11 HEKTARLIK ALAN
+        var areaCoords = [
+            [37.7749, -122.4194],
+            [37.7759, -122.4194],
+            [37.7759, -122.4184],
+            [37.7749, -122.4184]
+        ];
+
+        var areaPolygon = L.polygon(areaCoords, {
+            color: '#FF0000',
+            weight: 2,
+            opacity: 0.8,
+            fillColor: '#FF0000',
+            fillOpacity: 0.35
+        });
+
+        areaPolygon.addTo(map);
+
+        // İŞARETLEYİCİLER
+        var products = [
+            { priority: 1, type: 'Sağlık Malzemesi [1]', stock: 100 },
+            { priority: 2, type: 'Temel Gıda [2]', stock: 100 },
+            { priority: 3, type: 'Isınma Gereci [3]', stock: 70 },
+            { priority: 4, type: 'Giyecek [4]', stock: 70 }
+        ];
+
+        var markers = [];
+
+        for (var i = 0; i < 10; i++) {
+            var lat = Math.random() * (37.7759 - 37.7749) + 37.7749;
+            var lng = Math.random() * (-122.4184 - (-122.4194)) + (-122.4194);
+
+            var product = products[Math.floor(Math.random() * products.length)];
+
+            var marker = L.marker([lat, lng]).bindPopup(product.type + ' - Stok: ' + product.stock);
+            marker.addTo(map);
+            markers.push(marker);
+        }
+
+
+        var userProducts = prompt("Gıda,Giyecek,Isınma,Sağlık olarak 4 maddeyi giriniz (aralarında `,` koyarak ve boşluk bırakmayarak yazın[LÜTFEN]): ");
+        var userProductList = userProducts.split(",");
+
+        
+        var matchedMarkers = [];
+
+        for (var i = 0; i < markers.length; i++) {
+            var popupContent = markers[i].getPopup().getContent();
+            for (var j = 0; j < userProductList.length; j++) {
+                if (popupContent.includes(userProductList[j])) {
+                    matchedMarkers.push(markers[i]);
+                    break;
+                }
+            }
+        }
+
+        for (var i = 0; i < matchedMarkers.length; i++) {
+            matchedMarkers[i].setIcon(L.icon({
+                iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowSize: [41, 41]
+            }));
+        }
+
+        // matchedMarkers listesini priority değerine göre sırala
+        matchedMarkers.sort((a, b) => a.priority - b.priority);
+
+        var graph = {};
+        for (var i = 0; i < matchedMarkers.length - 1; i++) {
+            var start = matchedMarkers[i];
+            var end = matchedMarkers[i + 1];
+            var startLatLng = start.getLatLng();
+            var endLatLng = end.getLatLng();
+            var distance = startLatLng.distanceTo(endLatLng);
+            graph[start.getPopup().getContent()] = {};
+            graph[start.getPopup().getContent()][end.getPopup().getContent()] = distance;
+        }
+
+
+        console.log(graph)
+
+        //DIJKSTRA ALGORITMASI
+        function dijkstra(graph, start, end) {
+            var distances = {};
+            var visited = {};
+            var predecessors = {};
+            var queue = [];
+
+
+            for (var vertex in graph) {
+                if (vertex === start) {
+                    distances[vertex] = 0;
+                    queue.push({ vertex: vertex, distance: 0 });
+                } else {
+                    distances[vertex] = Infinity;
+                    queue.push({ vertex: vertex, distance: Infinity });
+                }
+
+                predecessors[vertex] = null;
+            }
+
+            while (queue.length > 0) {
+                var smallestDistanceIndex = 0;
+                for (var i = 0; i < queue.length; i++) {
+                    if (queue[i].distance < queue[smallestDistanceIndex].distance) {
+                        smallestDistanceIndex = i;
+                    }
+                }
+
+                var smallest = queue.splice(smallestDistanceIndex, 1)[0];
+
+                if (smallest.vertex === end) {
+                    var path = [smallest.vertex]; 
+                    var predecessor = predecessors[smallest.vertex];
+
+                    while (predecessor !== null) {
+                        path.push(predecessor);
+                        predecessor = predecessors[predecessor];
+                    }
+
+                    return path.reverse();
+                }
+
+                if (!visited[smallest.vertex]) {
+                    visited[smallest.vertex] = true;
+
+                    for (var neighbor in graph[smallest.vertex]) {
+                        var alt = distances[smallest.vertex] + graph[smallest.vertex][neighbor];
+
+                        if (alt < distances[neighbor]) {
+                            distances[neighbor] = alt;
+                            predecessors[neighbor] = smallest.vertex;
+                            queue.push({ vertex: neighbor, distance: alt });
+                        }
+                    }
+                }
+            }
+
+            return [];
+        }
+
+        console.log(matchedMarkers);
+
+    
+        var shortestPath = dijkstra(graph, matchedMarkers[0].getPopup().getContent(), matchedMarkers[matchedMarkers.length - 1].getPopup().getContent());
+
+        var pathCoords = [];
+        for (var i = 0; i < shortestPath.length; i++) {
+            for (var j = 0; j < markers.length; j++) {
+                if (markers[j].getPopup().getContent() === shortestPath[i]) {
+                    pathCoords.push(markers[j].getLatLng());
+                    break;
+                }
+            }
+        }
+
+        console.log(shortestPath);
+
+        var shortestPathLine = L.polyline(pathCoords, {color: 'blue', weight: 3, opacity: 0.5});
+        shortestPathLine.addTo(map);
+
+    </script>
+    </body>
+</html>
