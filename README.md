@@ -1,4 +1,7 @@
 # Drone-Map
+
+Kodun Amacı: Şehrin belirli noktalarında belirli ihtiyaçlar doğrultusunda ürünleri dağıtan drone navigasyonu oluşturur.
+
 Kodu standart bir HTML şeklinde live server üzerinden çalıştırabilirsiniz.
 
 
