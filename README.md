@@ -1,6 +1,6 @@
 # Drone-Map
 
-### NOT: main adlı kod dosyası farklı noktalardan alınan ürünleri teslim eden rotayı oluştururken main_2 kod dosyası tek bir noktadan alınan ürünlerin dağıtım navigasyon rotasını temsil eder. İkisi de temelde Dijkstra algoritmasını kullanır.
+#### NOT: main adlı kod dosyası farklı noktalardan alınan ürünleri teslim eden rotayı oluştururken main_2 kod dosyası tek bir noktadan alınan ürünlerin dağıtım navigasyon rotasını temsil eder. İkisi de temelde Dijkstra algoritmasını kullanır.
 
 Kodun Amacı: Şehrin belirli noktalarında belirli ihtiyaçlar doğrultusunda ürünleri dağıtan drone navigasyonu oluşturur.
 
